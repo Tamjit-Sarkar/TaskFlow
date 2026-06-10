@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Tracker</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #eef;
+            text-align: center;
+        }
+
+        .container {
+            width: 420px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        input, select {
+            width: 90%;
+            padding: 8px;
+            margin: 5px;
+        }
+
+        button {
+            padding: 8px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .task {
+            background: #ddd;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Task Tracker</h2>
+
+    <input id="title" placeholder="Title">
+    <input id="category" placeholder="Category">
+
+    <select id="priority">
+        <option>High</option>
+        <option>Medium</option>
+        <option>Low</option>
+    </select>
+
+    <input id="due" placeholder="dd/mm/yyyy">
+
+    <select id="type">
+        <option>work</option>
+        <option>personal</option>
+    </select>
+
+    <button onclick="addTask()">Add Task</button>
+
+    <h3>Tasks</h3>
+    <div id="list"></div>
+</div>
+
+<script>
+async function addTask() {
+    await fetch("/add", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            title: document.getElementById("title").value,
+            category: document.getElementById("category").value,
+            priority: document.getElementById("priority").value,
+            due_date: document.getElementById("due").value,
+            type: document.getElementById("type").value
+        })
+    });
+
+    loadTasks();
+}
+
+async function loadTasks() {
+    let res = await fetch("/tasks");
+    let data = await res.json();
+
+    let html = "";
+
+    data.forEach((t, i) => {
+        html += `
+            <div class="task">
+                <b>${t.title}</b><br>
+                ${t.category} | ${t.priority} | ${t.type}<br>
+                ${t.due_date}<br><br>
+                <button onclick="del(${i})">Delete</button>
+            </div>
+        `;
+    });
+
+    document.getElementById("list").innerHTML = html;
+}
+
+async function del(i) {
+    await fetch("/delete/" + i, {method: "DELETE"});
+    loadTasks();
+}
+
+loadTasks();
+</script>
+
+</body>
+</html>
